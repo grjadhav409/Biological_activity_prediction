@@ -44,7 +44,7 @@ class train_validation:
             save_dataset(all_structures)
 
             # change the parameters in .json file
-            dic = get_parameters(path='/settings/fp_settings.json', print_dict=False)
+            dic = get_parameters(path='settings/fp_settings.json', print_dict=False)
 
             x = smiles_dataset(dataset_df=all_structures, smiles_loc='Smiles',
                            fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
