@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
 import re
-
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from rdkit.Chem import Draw
-from rdkit.Chem import DataStructs
+# from rdkit.Chem import Draw
+# from rdkit.Chem import DataStructs
 
 
 def smiles_dataset(dataset_df = None, smiles_loc = 'Smiles', fp_radius = 3, fp_bits = 1024):
