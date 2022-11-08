@@ -24,7 +24,7 @@ class pred_validation():
     model_load = joblib.load('models/SVR/SVR.sav')
     database = pd.read_csv('screening_base/drugs_smiles.csv')
 
-    dic = get_parameters(path='./settings/fp_settings.json', print_dict=False)
+    dic = get_parameters(path='fp_settings.json', print_dict=False)
     screen_database = smiles_dataset(dataset_df=database, smiles_loc='smiles',
                                      fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
     screen_result = model_load.predict(screen_database)

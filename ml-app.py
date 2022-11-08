@@ -8,6 +8,11 @@ from sklearn.datasets import load_diabetes, load_boston
 from training_Validation_Insertion import train_validation
 from best_model_finder import tuner
 from application_logging import logger
+from sklearn.svm import SVR
+from sklearn.preprocessing import StandardScaler
+from utils import save_dataset, get_parameters
+from rdkit_utils import smiles_dataset
+
 from file_operations import file_methods
 import matplotlib.pyplot as plt
 
@@ -20,17 +25,15 @@ st.set_page_config(page_title='Property prediction',
 
 # ---------------------------------#
 # Model building
-# Model building
 def build_model(df):
-    train_valObj = train_validation(df)
-    X, Y = train_valObj.data_cleansing()
-    X = X.iloc[:, :10]
+    # descriptor calculations
 
-    # X = df.iloc[:, :-1]  # Using all column except for the last column as X
-    # Y = df.iloc[:, -1]  # Selecting the last column as Y
+    train_valObj = train_validation(df, descriptor)
+    X, Y = train_valObj.data_cleansing()
+    # X = X.iloc[:, :10]
 
     # Data splitting
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=1/3)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=1 / 3)
 
     st.markdown('**1.2. Data splits**')
     st.write('Training set')
@@ -38,49 +41,61 @@ def build_model(df):
     st.write('Test set')
     st.info(X_test.shape)
 
-    st.markdown('**1.3. Variable details**:')
-    st.write('X variable')
-    st.info(list(X.columns))
-    st.write('Y variable')
-    st.info(Y.name)
+    st.markdown(f"**1.3.'{descriptor}'**:")
+    st.write(X_train.head(4))
+
+    # st.info(list(X.columns))
+
+    st.markdown('Target')
+    st.write(Y_train.head(4))
+    # st.info(Y_train)
 
     # model building
-
-    model_finder = tuner.Model_Finder(open("Training_Logs/ModelTrainingLog.txt", 'a+'), logger.App_Logger())
-    best_model_name, rf = model_finder.get_best_model(X_train, Y_train, X_test, Y_test)
-
-    st.write('best_model:')
-    st.info(best_model_name)
-
-    # RandomForest = RandomForestRegressor()
-
+    rf = SVR(kernel='rbf')
     rf.fit(X_train, Y_train)
 
     st.subheader('2. Model Performance')
-
     st.markdown('**2.1. Training set**')
     Y_pred_train = rf.predict(X_train)
+
     st.write('Coefficient of determination ($R^2$):')
     st.info(r2_score(Y_train, Y_pred_train))
 
-    st.write('Error (MSE or MAE):')
+    st.write('Error (MSE):')
     st.info(mean_squared_error(Y_train, Y_pred_train))
 
     st.markdown('**2.2. Test set**')
     Y_pred_test = rf.predict(X_test)
+
     st.write('Coefficient of determination ($R^2$):')
     st.info(r2_score(Y_test, Y_pred_test))
 
-    st.write('Error (MSE or MAE):')
+    st.write('Error (MSE):')
     st.info(mean_squared_error(Y_test, Y_pred_test))
 
     st.subheader('3. Model Parameters')
     st.write(rf.get_params())
 
+    # vertual screening
+    database2 = pd.read_csv('screening_base/drugs_smiles.csv')
+    dic = get_parameters(path='fp_settings.json', print_dict=False)
+    database_fp = smiles_dataset(dataset_df=database2, smiles_loc='smiles',
+                                 fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
+    # database_fp = database_fp.iloc[:, :10] # for less training time
+    screen_result2 = rf.predict(database_fp[:])
+    screen_result_fp2 = pd.DataFrame({'Predicted values': screen_result2})
+    predictions_on_zinc15 = pd.concat([database2, screen_result_fp2], axis=1)
+    predictions_on_zinc15_new = predictions_on_zinc15.sort_values(by=["Predicted values"],
+                                                                  ascending=False)
+    st.subheader('Virtual screening results on FDA approved Drugs database')
+    st.write(predictions_on_zinc15_new.head(10))
+
+    save_dataset(predictions_on_zinc15_new.head(10), path='results/', file_name='drugs_result', idx=False)
+
 
 # ---------------------------------#
 st.write("""
-# ML for Molecular Property Prediction 
+# Machine Learning for Biological activity prediction
 
 ## IIIT Hyderabad
 
@@ -89,11 +104,16 @@ st.write("""
 # ---------------------------------#
 # Sidebar - Collects user input features into dataframe
 
-with st.sidebar.header('1. Upload your CSV data:'):
-    uploaded_file = st.sidebar.file_uploader("Upload your input CSV file", type=["csv"])
+with st.sidebar.header('1. Upload CSV data from ChEMBL database for Model training:'):
+    uploaded_file = st.sidebar.file_uploader("Upload your training CSV file", type=["csv"])
     st.sidebar.markdown("""
 [Example CSV input file](https://raw.githubusercontent.com/JiajunZhou96/ML-for-LSD1/main/datasets/ChEMBL_original_dataset.csv)
 """)
+
+# Sidebar
+with st.sidebar.header('2. Set Parameters'):
+    descriptor = st.sidebar.select_slider('Featurization Method',
+                                          options=['Morgan fingerprints', 'Mordred descriptors'])
 
 # ---------------------------------#
 # Main panel
@@ -101,19 +121,18 @@ with st.sidebar.header('1. Upload your CSV data:'):
 # Displays the dataset
 st.subheader('1. Dataset')
 
+# train
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file, delimiter=";")
+    df = df[df['Smiles'].notna()]
     st.markdown('**1.1. Glimpse of dataset**')
     st.write(df)
     build_model(df)
 else:
     st.info('Awaiting for CSV file to be uploaded.')
     if st.button('Press to use Example Dataset'):
-        # Boston housing dataset
         df = pd.read_csv(
-            "https://raw.githubusercontent.com/JiajunZhou96/ML-for-LSD1/main/datasets/ChEMBL_original_dataset.csv",delimiter=";")
-
+            "datasets/ChEMBL_original_dataset.csv")  # ,delimiter=";")
         st.markdown('Biological activity against LSD1 dataset used as example from CHEMBL database.')
         st.write(df.head(5))
-
         build_model(df)

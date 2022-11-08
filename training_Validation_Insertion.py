@@ -4,17 +4,21 @@ import numpy as np
 from application_logging import logger
 from utils import save_dataset , get_parameters
 from rdkit_utils import smiles_dataset
+import os.path
+import deepchem as dc
 
 class train_validation:
 
-    def __init__(self,df):
+    def __init__(self,df,desc):
         self.dataset_original = df
+        self.desc = desc
 
         #self.file_object = open("Training_Logs/Training_Main_Log.txt", 'a+')
         self.log_writer = logger.App_Logger()
 
     def data_cleansing(self):
         try:
+
             #self.log_writer.log(self.file_object, 'Start of Validation on files for prediction!!')
             # Take out all values that have pChEMBL values
             dataset_v1 = self.dataset_original[self.dataset_original['pChEMBL Value'].notna()]
@@ -43,19 +47,36 @@ class train_validation:
 
             save_dataset(all_structures)
 
-            # change the parameters in .json file
-            dic = get_parameters(path='settings/fp_settings.json', print_dict=False)
+            # morgan
+            if self.desc == "Morgan fingerprints":
+                path = os.path.abspath("fp_settings.json")
+                dic = get_parameters(path=path, print_dict=False)
 
-            x = smiles_dataset(dataset_df=all_structures, smiles_loc='Smiles',
-                           fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
+                x = smiles_dataset(dataset_df=all_structures, smiles_loc='Smiles',
+                               fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
 
-            y = all_structures['Calculated pChEMBL']
+                y = all_structures['Calculated pChEMBL']
 
-            # change file_name to save as different datasets
-            save_dataset(x, file_name=dic.get("dataset_name"), idx=False)
-            save_dataset(y, file_name=dic.get("label_name"), idx=False)
+                # change file_name to save as different datasets
+                save_dataset(x, file_name=dic.get("dataset_name"), idx=False)
+                save_dataset(y, file_name=dic.get("label_name"), idx=False)
 
-            return x,y
+                return x, y
+            # rdkit
+
+            elif self.desc == 'Mordred descriptors':
+
+                smiles = all_structures['Smiles'].tolist()
+                featurizer = dc.feat.MordredDescriptors(ignore_3D = True)
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+                y = all_structures['Calculated pChEMBL']
+
+                return x, y
+
+            else:
+                pass
+
 
 
         except Exception as e:

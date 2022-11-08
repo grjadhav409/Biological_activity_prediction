@@ -8,7 +8,7 @@ from sklearn.datasets import load_diabetes, load_boston
 #---------------------------------#
 # Page layout
 ## Page expands to full width
-st.set_page_config(page_title='Property prediction',
+st.set_page_config(page_title='The Machine Learning App',
     layout='wide')
 
 #---------------------------------#
@@ -66,16 +66,17 @@ def build_model(df):
 
 #---------------------------------#
 st.write("""
-# ML for Molecular Property Prediction 
+# The Machine Learning App
 
-## IIIT yderabad
+In this implementation, the *RandomForestRegressor()* function is used in this app for build a regression model using the **Random Forest** algorithm.
 
-Auther: G R Jadhav
+Try adjusting the hyperparameters!
+
 """)
 
 #---------------------------------#
 # Sidebar - Collects user input features into dataframe
-with st.sidebar.header('1. Upload your CSV data:'):
+with st.sidebar.header('1. Upload your CSV data'):
     uploaded_file = st.sidebar.file_uploader("Upload your input CSV file", type=["csv"])
     st.sidebar.markdown("""
 [Example CSV input file](https://raw.githubusercontent.com/dataprofessor/data/master/delaney_solubility_with_descriptors.csv)

@@ -10,15 +10,10 @@ from application_logging import logger
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from training_Validation_Insertion import train_validation
-
-
 # Creating the common Logging object
 
-
 class trainModel():
-
     def __init__(self):
         self.log_writer = logger.App_Logger()
         self.file_object = open("Training_Logs/ModelTrainingLog.txt", 'a+')

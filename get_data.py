@@ -27,6 +27,6 @@ def get_data_class(target_name):
     except Exception as e:
         print(e)
 
-a = get_data_class("LSD1")
-print(a.shape)
+#a = get_data_class("LSD1")
+#print(a.shape)
 

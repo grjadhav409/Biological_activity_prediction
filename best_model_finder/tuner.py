@@ -7,7 +7,6 @@ import pandas as pd
 from sklearn.svm import SVR
 from utils import save_plot
 
-
 class Model_Finder:
 
     def __init__(self, file_object, logger_object):
@@ -62,18 +61,7 @@ class Model_Finder:
 
     def get_best_params_for_linearReg(self, train_x, train_y):
 
-        """
-                                        Method Name: get_best_params_for_linearReg
-                                        Description: get the parameters for LinearReg Algorithm which give the best accuracy.
-                                                     Use Hyper Parameter Tuning.
-                                        Output: The model with the best parameters
-                                        On Failure: Raise Exception
 
-                                        Written By: iNeuron Intelligence
-                                        Version: 1.0
-                                        Revisions: None
-
-                                """
         self.logger_object.log(self.file_object,
                                'Entered the get_best_params_for_linearReg method of the Model_Finder class')
         try:
@@ -146,17 +134,7 @@ class Model_Finder:
             raise Exception()
 
     def get_best_model(self, train_x, train_y, test_x, test_y):
-        """
-                                                Method Name: get_best_model
-                                                Description: Find out the Model which has the best AUC score.
-                                                Output: The best model name and the model object
-                                                On Failure: Raise Exception
 
-                                                Written By: iNeuron Intelligence
-                                                Version: 1.0
-                                                Revisions: None
-
-                                        """
         self.logger_object.log(self.file_object,
                                'Entered the get_best_model method of the Model_Finder class')
 
@@ -186,7 +164,6 @@ class Model_Finder:
                 f_object.close()
 
             # comparing the two models, return best
-
             if (self.SVR_error < self.prediction_randomForestReg_error):
                 return 'RandomForestRegressor', self.randomForestReg
             else:

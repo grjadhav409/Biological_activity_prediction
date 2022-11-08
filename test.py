@@ -1,6 +1,8 @@
-import pandas as pd
+import numpy as np
+s_value = [34, 35]
+p_value=[]
+for i in s_value:
+    p_value.append(np.around(- np.log10(i / (10 ** (9))), 2))
 
-df1= pd.read_csv("datasets/3_512_x_main.csv")
-df2= pd.read_csv("datasets/3_512_y_main.csv")
-df3 = pd.concat([df1, df2] , axis = 1)
-df3.to_csv("datasets/xy.csv")
+
+print(p_value)
