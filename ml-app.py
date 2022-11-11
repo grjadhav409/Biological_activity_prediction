@@ -12,7 +12,6 @@ from sklearn.svm import SVR
 from sklearn.preprocessing import StandardScaler
 from utils import save_dataset, get_parameters
 from rdkit_utils import smiles_dataset
-import mols2grid
 from rdkit import Chem
 from rdkit.Chem.Draw import IPythonConsole
 from rdkit.Chem import Draw
