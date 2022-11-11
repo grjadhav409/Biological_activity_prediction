@@ -26,22 +26,6 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title='Property prediction',
                    layout='wide')
 # ---------------------------------#
-# smiles to structure
-def getstr_drg(df1):
-    df2 = df1.sort_values(by=["Predicted values"], ascending=False)
-    df3 = df2.head(5).drop_duplicates()
-    smiles_list = df3["smiles"].to_list()
-    mols = []
-    for i in smiles_list:
-        mols.append(Chem.MolFromSmiles(i))
-    df3["rdkit_object"] = mols
-    df3["smiles_list"] = smiles_list
-    two_decimals = lambda x: f"{x:.2f}"
-    return mols2grid.display(df3, mol_col='rdkit_object', subset=["img", 'Predicted values'],
-                             transform={"Predicted values": two_decimals})
-
-
-# ---------------------------------#
 # Model building
 def build_model(df):
     # descriptor calculations
