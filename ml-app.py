@@ -7,16 +7,12 @@ from sklearn.svm import SVR
 from utils import save_dataset, get_parameters
 from rdkit_utils import smiles_dataset
 
-
-
-from file_operations import file_methods
-import matplotlib.pyplot as plt
-
 # ---------------------------------#
 # Page layout
 ## Page expands to full width
 st.set_page_config(page_title='Property prediction',
                    layout='wide')
+
 # ---------------------------------#
 # Model building
 def build_model(df):
@@ -35,7 +31,7 @@ def build_model(df):
     st.write('Test set')
     st.info(X_test.shape)
 
-    st.markdown(f"**1.3.'{descriptor}'**:")
+    st.markdown(f"**1.3.Molecular Featurization Method: {descriptor}**")
     st.write(X_train.head(4))
 
     # st.info(list(X.columns))
@@ -55,7 +51,7 @@ def build_model(df):
     st.markdown('**2.1. Training set**')
     Y_pred_train = rf.predict(X_train)
 
-    st.write('Coefficient of determination ($R^2$):')
+    st.write('$R^2$:')
     st.info(r2_score(Y_train, Y_pred_train))
 
     st.write('Error (MSE):')
@@ -64,7 +60,7 @@ def build_model(df):
     st.markdown('**2.2. Test set**')
     Y_pred_test = rf.predict(X_test)
 
-    st.write('Coefficient of determination ($R^2$):')
+    st.write('$R^2$:')
     st.info(r2_score(Y_test, Y_pred_test))
 
     st.write('Error (MSE):')
@@ -73,18 +69,20 @@ def build_model(df):
     st.subheader('3. Model Parameters')
     st.write(rf.get_params())
 
-    # vertual screening
+    ## virtual screening
+
+
+
     database2 = pd.read_csv('screening_base/drugs_smiles.csv')
-    dic = get_parameters(path='fp_settings.json', print_dict=False)
-    database_fp = smiles_dataset(dataset_df=database2, smiles_loc='smiles',
-                                 fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
-    # database_fp = database_fp.iloc[:, :10] # for less training time
-    screen_result2 = rf.predict(database_fp[:])
+    train_valObj = train_validation(database2, descriptor)
+    database_fp = train_valObj.screen_data_cleansing()
+
+    screen_result2 = rf.predict(database_fp)
     screen_result_fp2 = pd.DataFrame({'Predicted values': screen_result2})
     predictions_on_zinc15 = pd.concat([database2, screen_result_fp2], axis=1)
     predictions_on_zinc15_new = predictions_on_zinc15.sort_values(by=["Predicted values"],
                                                                   ascending=False)
-    st.subheader('Virtual screening results on FDA approved Drugs')
+    st.subheader('Virtual screening on FDA approved Drugs')
     st.write(predictions_on_zinc15_new.head(10))
 
 
@@ -108,8 +106,8 @@ with st.sidebar.header('Upload CSV data from ChEMBL database for Model training 
 # Sidebar
 with st.sidebar.header('Molecular Featurization Method :'):
     descriptor = st.sidebar.select_slider(' ',
-                                          options=['Morgan fingerprints', 'Mordred descriptors'])
-with st.sidebar.subheader('Hyperparameters :'):
+                                          options=['Morgan fingerprints','MACCSKeysFingerprint', 'PubChemFingerprint', 'RDKitDescriptors'])
+with st.sidebar.subheader('SVM Hyperparameters :'):
     # parameter_n_estimators = st.sidebar.slider('Number of estimators (n_estimators)', 0, 1000, 100, 100)
     # parameter_max_features = st.sidebar.select_slider('Max features (max_features)', options=['auto', 'sqrt', 'log2'])
     # parameter_min_samples_split = st.sidebar.slider('Minimum number of samples required to split an internal node (min_samples_split)', 1, 10, 2, 1)

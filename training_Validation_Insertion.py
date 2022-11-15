@@ -6,6 +6,7 @@ from utils import save_dataset , get_parameters
 from rdkit_utils import smiles_dataset
 import os.path
 import deepchem as dc
+from sklearn.preprocessing import StandardScaler
 
 class train_validation:
 
@@ -73,6 +74,103 @@ class train_validation:
                 y = all_structures['Calculated pChEMBL']
 
                 return x, y
+
+            elif self.desc == 'MACCSKeysFingerprint':
+
+                smiles = all_structures['Smiles'].tolist()
+                featurizer = dc.feat.MACCSKeysFingerprint()
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+                y = all_structures['Calculated pChEMBL']
+
+                return x, y
+
+            elif self.desc == 'RDKitDescriptors':
+
+                smiles = all_structures['Smiles'].tolist()
+                featurizer = dc.feat.RDKitDescriptors(use_fragment=True, ipc_avg=True)
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+                scaler = StandardScaler()
+                x = pd.DataFrame(data=scaler.fit_transform(x))
+                y = all_structures['Calculated pChEMBL']
+
+                return x, y
+
+            elif self.desc == 'PubChemFingerprint':
+
+                smiles = all_structures['Smiles'].tolist()
+                featurizer = dc.feat.PubChemFingerprint()
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+                y = all_structures['Calculated pChEMBL']
+
+                return x, y
+
+            else:
+                pass
+
+
+
+        except Exception as e:
+            raise e
+
+    def screen_data_cleansing(self):
+        try:
+            # morgan
+            if self.desc == "Morgan fingerprints":
+                path = os.path.abspath("fp_settings.json")
+                dic = get_parameters(path=path, print_dict=False)
+
+                x = smiles_dataset(dataset_df=self.dataset_original, smiles_loc='Smiles',
+                               fp_radius=dic.get("fp_radius"), fp_bits=dic.get("fp_bits"))
+
+
+                # change file_name to save as different datasets
+                save_dataset(x, file_name=dic.get("dataset_name"), idx=False)
+
+                return x
+            # rdkit
+
+            elif self.desc == 'Mordred descriptors':
+
+                smiles = self.dataset_original['Smiles'].tolist()
+                featurizer = dc.feat.MordredDescriptors(ignore_3D = True)
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+
+                return x
+
+            elif self.desc == 'MACCSKeysFingerprint':
+
+                smiles = self.dataset_original['Smiles'].tolist()
+                featurizer = dc.feat.MACCSKeysFingerprint()
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+
+                return x
+
+            elif self.desc == 'RDKitDescriptors':
+
+                smiles = self.dataset_original['Smiles'].tolist()
+                featurizer = dc.feat.RDKitDescriptors(use_fragment=True, ipc_avg=True)
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+                x.replace([np.inf, -np.inf], np.nan, inplace=True)
+                x.fillna(0, inplace=True)
+                scaler = StandardScaler()
+                x = pd.DataFrame(data=scaler.fit_transform(x))
+
+                return x
+
+            elif self.desc == 'PubChemFingerprint':
+
+                smiles = self.dataset_original['Smiles'].tolist()
+                featurizer = dc.feat.PubChemFingerprint()
+                discriptors = featurizer.featurize(smiles)
+                x = pd.DataFrame(data=discriptors)
+
+                return x
 
             else:
                 pass
