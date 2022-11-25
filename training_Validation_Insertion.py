@@ -91,6 +91,8 @@ class train_validation:
                 featurizer = dc.feat.RDKitDescriptors(use_fragment=True, ipc_avg=True)
                 discriptors = featurizer.featurize(smiles)
                 x = pd.DataFrame(data=discriptors)
+                x.replace([np.inf, -np.inf], np.nan, inplace=True)
+                x.fillna(0, inplace=True)
                 scaler = StandardScaler()
                 x = pd.DataFrame(data=scaler.fit_transform(x))
                 y = all_structures['Calculated pChEMBL']

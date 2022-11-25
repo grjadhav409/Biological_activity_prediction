@@ -82,13 +82,13 @@ def build_model(df):
     predictions_on_zinc15 = pd.concat([database2, screen_result_fp2], axis=1)
     predictions_on_zinc15_new = predictions_on_zinc15.sort_values(by=["Predicted values"],
                                                                   ascending=False)
-    st.subheader('Virtual screening on FDA approved Drugs')
+    st.subheader('Virtual Screening on FDA Approved Drugs')
     st.write(predictions_on_zinc15_new.head(10))
 
 
 # ---------------------------------#
 st.write("""
-# Machine Learning for Biological activity prediction
+# Machine Learning for Virtual Screening
 
 ## IIIT Hyderabad
 
